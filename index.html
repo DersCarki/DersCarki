@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Ders Çarkı">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a0b2e">
+    <title>Başarı Çarkı</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --text-color: #ffffff;
+            --primary-color: #FFD700;
+            --accent-color: #9D00FF;
+            --wheel-size: min(90vw, 400px);
+            --seg-1: #FF0040;
+            --seg-2: #00E5FF;
+            --seg-3: #9D00FF;
+            --seg-4: #FFC400;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #000000 100%);
+        }
+
+        .streak-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .streak-label {
+            display: block;
+            font-size: 0.8rem;
+            color: #aaa;
+            letter-spacing: 2px;
+        }
+
+        .streak-count {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            width: 100%;
+            padding: 20px;
+            padding-bottom: 50px;
+            z-index: 10;
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-align: center;
+            line-height: 1.1;
+            background: linear-gradient(to bottom, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.2));
+        }
+
+        .wheel-wrapper {
+            position: relative;
+            width: var(--wheel-size);
+            height: var(--wheel-size);
+            filter: drop-shadow(0 0 50px rgba(157, 0, 255, 0.3));
+        }
+
+        .pointer {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 60px;
+            background: linear-gradient(to bottom, #FFD700, #B8860B);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 20;
+            filter: drop-shadow(0 0 10px #FFD700);
+            transform-origin: 50% 0%;
+        }
+
+        @keyframes tick {
+            0% {
+                transform: translateX(-50%) rotate(0deg);
+            }
+
+            25% {
+                transform: translateX(-50%) rotate(-20deg);
+            }
+
+            50% {
+                transform: translateX(-50%) rotate(10deg);
+            }
+
+            75% {
+                transform: translateX(-50%) rotate(-10deg);
+            }
+
+            100% {
+                transform: translateX(-50%) rotate(0deg);
+            }
+        }
+
+        .pointer.ticking {
+            animation: tick 0.15s ease-out;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #FFD700;
+            box-shadow: 0 0 0 4px #000, 0 0 0 8px #333, inset 0 0 100px rgba(0, 0, 0, 0.9);
+        }
+
+        .segment {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            transform: rotate(calc(90deg * var(--i)));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .segment:nth-child(1) {
+            background: linear-gradient(135deg, #2a0a18, var(--seg-1));
+        }
+
+        .segment:nth-child(2) {
+            background: linear-gradient(135deg, #0a1f2a, var(--seg-2));
+        }
+
+        .segment:nth-child(3) {
+            background: linear-gradient(135deg, #1a0a2a, var(--seg-3));
+        }
+
+        .segment:nth-child(4) {
+            background: linear-gradient(135deg, #2a250a, var(--seg-4));
+        }
+
+        .content {
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            transform: rotate(45deg);
+        }
+
+        .peg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
+            transform: rotate(calc(90deg * var(--i)));
+        }
+
+        .peg::after {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 24px;
+            background: #FFD700;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #FFD700;
+        }
+
+        .center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20%;
+            height: 20%;
+            background: radial-gradient(circle at 30% 30%, #444, #000);
+            border-radius: 50%;
+            z-index: 10;
+            border: 2px solid #FFD700;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .spin-btn {
+            padding: 1.8rem 4.5rem;
+            font-size: clamp(1.6rem, 5vw, 2.2rem);
+            font-weight: 900;
+            color: #000;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            position: relative;
+            overflow: hidden;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+            z-index: 50;
+            min-height: 70px;
+            min-width: 280px;
+        }
+
+        .spin-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                transform: translateX(-100%) rotate(45deg);
+            }
+
+            20% {
+                transform: translateX(100%) rotate(45deg);
+            }
+
+            100% {
+                transform: translateX(100%) rotate(45deg);
+            }
+        }
+
+        .spin-btn:disabled {
+            background: #333;
+            color: #666;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .spin-btn:disabled::after {
+            display: none;
+        }
+
+        .result {
+            text-align: center;
+            min-height: 6rem;
+            transition: all 0.5s;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result.hidden {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .result h2 {
+            font-size: 1.5rem;
+            color: #aaa;
+            margin-bottom: 0.5rem;
+        }
+
+        #result-number {
+            display: block;
+            color: var(--primary-color);
+            font-size: 4rem;
+            font-weight: 900;
+            text-shadow: 0 0 30px var(--primary-color);
+            line-height: 1;
+        }
+
+        .quote {
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            font-style: italic;
+            color: #fff;
+            opacity: 0.8;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        #background-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+            backdrop-filter: blur(1px);
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.5;
+            }
+
+            90% {
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: translateY(-100px) translateX(20px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="background-particles"></div>
+    <div class="streak-container">
+        <span class="streak-label">MEVCUT SERİ'NİZ 🔥</span>
+        <span class="streak-count" id="streak-count">0 GÜN</span>
+    </div>
+
+    <div class="main-container">
+        <h1 class="title">DERS<br>ÇARKI</h1>
+
+        <div class="wheel-wrapper">
+            <div class="pointer"></div>
+            <div class="wheel" id="wheel">
+                <div class="segment" style="--i:0;">
+                    <div class="content">2</div>
+                </div>
+                <div class="segment" style="--i:1;">
+                    <div class="content">4</div>
+                </div>
+                <div class="segment" style="--i:2;">
+                    <div class="content">5</div>
+                </div>
+                <div class="segment" style="--i:3;">
+                    <div class="content">6</div>
+                </div>
+                <div class="peg" style="--i:0;"></div>
+                <div class="peg" style="--i:1;"></div>
+                <div class="peg" style="--i:2;"></div>
+                <div class="peg" style="--i:3;"></div>
+            </div>
+            <div class="center-circle"></div>
+        </div>
+
+        <button id="spin-btn" class="spin-btn">ŞANSINI DENE</button>
+
+        <div id="result" class="result hidden">
+            <h2>KISMETİN: <span id="result-number"></span></h2>
+            <p id="quote" class="quote"></p>
+        </div>
+    </div>
+
+    <div id="confetti-container"></div>
+
+    <script>
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spin-btn');
+        const resultDiv = document.getElementById('result');
+        const resultNumber = document.getElementById('result-number');
+        const quoteElem = document.getElementById('quote');
+        const streakCountElem = document.getElementById('streak-count');
+        const pointer = document.querySelector('.pointer');
+
+        const quotes = [
+            "Başarı, her gün tekrarlanan küçük çabaların toplamıdır.",
+            "İlerlemenin sırrı başlamaktır.",
+            "Saate bakma; onun yaptığını yap. İlerlemeye devam et.",
+            "Gelecek, bugün ne yaptığına bağlıdır.",
+            "Yapabileceğine inan, yolun yarısındasın.",
+            "Sınırın sadece hayal gücündür.",
+            "Kendini zorla, çünkü bunu senin için başkası yapmayacak.",
+            "Harika şeyler asla konfor alanlarından çıkmaz."
+        ];
+
+        // Tick sound using Web Audio API
+        let audioContext;
+        function playTick() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.05);
+
+            pointer.classList.add('ticking');
+            setTimeout(() => pointer.classList.remove('ticking'), 150);
+        }
+
+        const savedStreak = localStorage.getItem('currentStreak') || '0';
+        streakCountElem.textContent = `${savedStreak} GÜN`;
+
+        const lastSpinDate = localStorage.getItem('lastSpinDate');
+        const today = new Date().toDateString();
+
+        if (lastSpinDate === today) {
+            spinBtn.disabled = true;
+            spinBtn.textContent = "YARIN YENİDEN GELMEYİ UNUTMA";
+        }
+
+        // Random initial rotation
+        let currentRotation = Math.floor(Math.random() * 360);
+        wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+        // PHYSICS ENGINE
+        let velocity = 0;
+        let rotation = currentRotation;
+        let isSpinning = false;
+        let lastBarrierAngle = -1;
+        let animationId;
+
+        function normalizeAngle(angle) {
+            angle = angle % 360;
+            if (angle < 0) angle += 360;
+            return angle;
+        }
+
+        function getBarrierAngle(angle) {
+            return Math.floor(normalizeAngle(angle) / 90);
+        }
+
+        function spinWheel() {
+            if (!isSpinning) return;
+
+            // Update rotation
+            rotation += velocity;
+            const normalizedRotation = normalizeAngle(rotation);
+
+            // Check barrier collision
+            const currentBarrier = getBarrierAngle(rotation);
+            if (currentBarrier !== lastBarrierAngle && velocity > 0.5) {
+                playTick();
+                lastBarrierAngle = currentBarrier;
+                // Apply friction on collision
+                velocity *= 0.88;
+            }
+
+            // Natural deceleration
+            velocity *= 0.97;
+
+            // Update visual
+            wheel.style.transform = `rotate(${rotation}deg)`;
+
+            // Check if stopped
+            if (velocity < 0.5) {
+                isSpinning = false;
+                velocity = 0;
+                cancelAnimationFrame(animationId);
+
+                // Calculate result
+                setTimeout(() => {
+                    const finalAngle = normalizeAngle(rotation);
+                    const degrees = (360 - finalAngle) % 360;
+                    const rawIndex = Math.floor(degrees / 90);
+                    const segmentIndex = (rawIndex + 1) % 4;
+                    const values = [2, 4, 5, 6];
+                    const result = values[segmentIndex];
+                    showResult(result);
+                }, 200);
+            } else {
+                animationId = requestAnimationFrame(spinWheel);
+            }
+        }
+
+        spinBtn.onclick = function () {
+            if (this.disabled || isSpinning) return;
+
+            this.disabled = true;
+            resultDiv.classList.add('hidden');
+
+            // Random power: 25% to 100%
+            const power = 0.25 + Math.random() * 0.75;
+            velocity = 15 + (power * 20); // 15-35 degrees per frame
+
+            rotation = normalizeAngle(rotation);
+            lastBarrierAngle = getBarrierAngle(rotation);
+            isSpinning = true;
+
+            animationId = requestAnimationFrame(spinWheel);
+        };
+
+        function showResult(number) {
+            resultNumber.textContent = number + " SAAT";
+            quoteElem.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+            resultDiv.classList.remove('hidden');
+
+            updateStreak();
+
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#FFD700', '#FF0055', '#00F0FF', '#BD00FF']
+            });
+
+            localStorage.setItem('lastSpinDate', new Date().toDateString());
+            spinBtn.disabled = true;
+            spinBtn.textContent = "YARIN YENİDEN GELMEYİ UNUTMA";
+        }
+
+        function updateStreak() {
+            const lastSpinDate = localStorage.getItem('lastSpinDate');
+            let currentStreak = parseInt(localStorage.getItem('currentStreak') || '0');
+            const today = new Date().toDateString();
+
+            if (lastSpinDate !== today) {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+
+                if (lastSpinDate === yesterday.toDateString()) {
+                    currentStreak++;
+                } else if (lastSpinDate) {
+                    currentStreak = 1;
+                } else {
+                    currentStreak = 1;
+                }
+
+                localStorage.setItem('lastSpinDate', today);
+                localStorage.setItem('currentStreak', currentStreak);
+            }
+
+            streakCountElem.textContent = `${currentStreak} GÜN`;
+
+            if (currentStreak > 3) {
+                streakCountElem.style.color = '#ff0055';
+                streakCountElem.style.textShadow = '0 0 15px #ff0055';
+            }
+        }
+
+        function confetti(options) {
+            const container = document.getElementById('confetti-container');
+
+            for (let i = 0; i < options.particleCount; i++) {
+                const el = document.createElement('div');
+                el.style.position = 'absolute';
+                el.style.width = '10px';
+                el.style.height = '10px';
+                el.style.backgroundColor = options.colors[Math.floor(Math.random() * options.colors.length)];
+                el.style.left = '50%';
+                el.style.top = '50%';
+                el.style.borderRadius = '50%';
+                el.style.pointerEvents = 'none';
+
+                const angle = Math.random() * Math.PI * 2;
+                const tx = Math.cos(angle) * 100 * Math.random();
+                const ty = Math.sin(angle) * 100 * Math.random();
+
+                el.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 1000 + Math.random() * 1000,
+                    easing: 'cubic-bezier(0, .9, .57, 1)',
+                    fill: 'forwards'
+                });
+
+                container.appendChild(el);
+                setTimeout(() => el.remove(), 2000);
+            }
+        }
+
+        function initParticles() {
+            const container = document.getElementById('background-particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+
+                const size = Math.random() * 4 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}vw`;
+                particle.style.animationDelay = `${Math.random() * 20}s`;
+                particle.style.animationDuration = `${10 + Math.random() * 20}s`;
+                particle.style.opacity = Math.random() * 0.3;
+
+                container.appendChild(particle);
+            }
+        }
+
+        initParticles();
+    </script>
+</body>
+
+</html>

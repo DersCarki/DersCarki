@@ -1,0 +1,23 @@
+{
+  "name": "Ders Çarkı",
+  "short_name": "Çark",
+  "description": "Günlük ders çalışma süresi belirleyici çark""start_url": "./luck_wheel_single.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#1a0b2e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
